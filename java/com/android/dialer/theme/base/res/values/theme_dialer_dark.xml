@@ -33,33 +33,35 @@
   <!-- Activities and Applications should inherit from one of the themes above. -->
   <style name="Dialer.Dark.ThemeBase">
     <!-- These values should be used to color all backgrounds. -->
-    <item name="android:colorBackground">@*android:color/system_neutral1_900</item>
-    <item name="android:colorBackgroundFloating">@*android:color/system_neutral1_800</item>
+    <item name="android:colorBackground">@android:color/black</item>
+    <item name="android:colorBackgroundFloating">@android:color/black</item>
 
     <!-- These values should be used to set text color. -->
     <!-- swap text colors. -->
-    <item name="android:textColorPrimary">@color/dialer_dark_primary_text_color</item>
-    <item name="android:textColorSecondary">@color/dialer_dark_secondary_text_color</item>
-    <item name="android:textColorPrimaryInverse">@color/dialer_primary_text_color</item>
-    <item name="android:textColorSecondaryInverse">@color/dialer_secondary_text_color</item>
-    <item name="android:textColorHint">@color/google_grey_600</item>
+    <item name="android:textColorPrimary">@android:color/white</item>
+    <item name="android:textColorSecondary">#CCCCCC</item>
+    <item name="android:textColorPrimaryInverse">@android:color/black</item>
+    <item name="android:textColorSecondaryInverse">@android:color/black</item>
+    <item name="android:textColorHint">#888888</item>
 
     <!-- These will be automatically used to color most Appcompat/Material widgets. -->
-    <item name="android:colorPrimary">@color/dialer_dark_theme_color</item>
-    <item name="colorPrimary">@color/dialer_dark_theme_color</item>
-    <item name="android:colorPrimaryDark">@color/dialer_dark_theme_color_dark</item>
-    <item name="colorPrimaryDark">@color/dialer_dark_theme_color_dark</item>
-    <item name="android:colorAccent">@color/dialer_dark_secondary_color</item>
-    <item name="colorAccent">@color/dialer_dark_secondary_color</item>
+    <item name="android:colorPrimary">@android:color/black</item>
+    <item name="colorPrimary">@android:color/black</item>
+    <item name="android:colorPrimaryDark">@android:color/black</item>
+    <item name="colorPrimaryDark">@android:color/black</item>
+    <item name="android:colorAccent">@android:color/white</item>
+    <item name="colorAccent">@android:color/white</item>
 
     <!-- Used to automatically style check/selected checkbox, switches and radio buttons -->
-    <item name="colorControlActivated">?android:attr/colorPrimary</item>
+    <item name="colorControlActivated">@android:color/white</item>
+    <item name="android:selectableItemBackground">@drawable/monochrome_focus_selector</item>
+    <item name="selectableItemBackground">@drawable/monochrome_focus_selector</item>
 
     <!-- Dialer specific attributes. -->
-    <item name="colorIcon">?android:attr/textColorSecondary</item>
-    <item name="colorIconSecondary">?android:attr/textColorSecondary</item>
-    <item name="colorTextOnUnthemedDarkBackground">@*android:color/system_neutral1_0</item>
-    <item name="colorIconOnUnthemedDarkBackground">@*android:color/system_neutral1_0</item>
-    <item name="colorPrimary20pct">@color/dialer_dark_theme_color_20pct</item>
+    <item name="colorIcon">@android:color/white</item>
+    <item name="colorIconSecondary">#CCCCCC</item>
+    <item name="colorTextOnUnthemedDarkBackground">@android:color/white</item>
+    <item name="colorIconOnUnthemedDarkBackground">@android:color/white</item>
+    <item name="colorPrimary20pct">#33FFFFFF</item>
   </style>
 </resources>

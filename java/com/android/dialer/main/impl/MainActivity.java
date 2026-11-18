@@ -16,10 +16,14 @@
 
 package com.android.dialer.main.impl;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.KeyEvent;
+import android.view.View;
+import com.android.dialer.dialpadview.DialpadFragment;
 import com.android.dialer.blockreportspam.ShowBlockReportSpamDialogReceiver;
 import com.android.dialer.calllog.config.CallLogConfigComponent;
 import com.android.dialer.common.Assert;
@@ -174,5 +178,34 @@ public class MainActivity extends TransactionSafeActivity
   @Override
   public MainActivityPeer getPeer() {
     return activePeer;
+  }
+
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    for (Fragment fragment : getFragmentManager().getFragments()) {
+      if (fragment instanceof DialpadFragment && fragment.isVisible()) {
+        if (((DialpadFragment) fragment).handleHardwareKeyDown(keyCode, event)) {
+          return true;
+        }
+      }
+    }
+    if ((keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9)
+        || keyCode == KeyEvent.KEYCODE_STAR
+        || keyCode == KeyEvent.KEYCODE_POUND) {
+      View fab = findViewById(R.id.fab);
+      if (fab != null && fab.getVisibility() == View.VISIBLE) {
+        fab.performClick();
+        fab.post(() -> {
+          for (Fragment fragment : getFragmentManager().getFragments()) {
+            if (fragment instanceof DialpadFragment && fragment.isVisible()) {
+              ((DialpadFragment) fragment).handleHardwareKeyDown(keyCode, event);
+              break;
+            }
+          }
+        });
+        return true;
+      }
+    }
+    return super.onKeyDown(keyCode, event);
   }
 }

@@ -44,40 +44,42 @@
 
   <!-- Activities and Applications should inherit from one of the themes above. -->
   <style name="Dialer.ThemeBase">
-    <item name="android:forceDarkAllowed">true</item>
+    <item name="android:forceDarkAllowed">false</item>
     <!-- These values should be used to color all backgrounds. -->
-    <item name="android:colorBackground">@color/dialer_background_color</item>
-    <item name="android:colorBackgroundFloating">@color/dialer_background_floating</item>
-    <item name="colorBackgroundSearchBar">@color/dialer_search_bar_color</item>
+    <item name="android:colorBackground">@android:color/black</item>
+    <item name="android:colorBackgroundFloating">@android:color/black</item>
+    <item name="colorBackgroundSearchBar">@android:color/black</item>
 
     <!-- These values should be used to set text color. -->
-    <item name="android:textColorPrimary">@color/dialer_primary_text_color</item>
-    <item name="android:textColorSecondary">@color/dialer_secondary_text_color</item>
-    <item name="android:textColorPrimaryInverse">@color/google_grey_300</item>
-    <item name="android:textColorSecondaryInverse">@color/google_grey_400</item>
-    <item name="android:textColorHint">@color/google_grey_600</item>
+    <item name="android:textColorPrimary">@android:color/white</item>
+    <item name="android:textColorSecondary">#CCCCCC</item>
+    <item name="android:textColorPrimaryInverse">@android:color/black</item>
+    <item name="android:textColorSecondaryInverse">@android:color/black</item>
+    <item name="android:textColorHint">#888888</item>
 
     <!-- These will be automatically used to color most Appcompat/Material widgets. -->
-    <item name="android:colorPrimary">@color/dialer_theme_color</item>
-    <item name="colorPrimary">@color/dialer_theme_color</item>
-    <item name="android:colorPrimaryDark">@color/dialer_theme_color_dark</item>
-    <item name="colorPrimaryDark">@color/dialer_theme_color_dark</item>
-    <item name="android:colorAccent">@color/dialer_theme_color</item>
-    <item name="colorAccent">@color/dialer_theme_color</item>
+    <item name="android:colorPrimary">@android:color/black</item>
+    <item name="colorPrimary">@android:color/black</item>
+    <item name="android:colorPrimaryDark">@android:color/black</item>
+    <item name="colorPrimaryDark">@android:color/black</item>
+    <item name="android:colorAccent">@android:color/white</item>
+    <item name="colorAccent">@android:color/white</item>
 
     <!-- Used to automatically style check/selected checkbox, switches and radio buttons -->
-    <item name="colorControlActivated">?android:attr/colorPrimary</item>
+    <item name="colorControlActivated">@android:color/white</item>
+    <item name="android:selectableItemBackground">@drawable/monochrome_focus_selector</item>
+    <item name="selectableItemBackground">@drawable/monochrome_focus_selector</item>
 
     <!-- Dialer specific attributes. -->
-    <item name="colorIcon">@color/google_grey_700</item>
-    <item name="colorIconSecondary">@color/google_grey_400</item>
-    <item name="colorTextOnUnthemedDarkBackground">@*android:color/system_neutral1_0</item>
-    <item name="colorIconOnUnthemedDarkBackground">@*android:color/system_neutral1_0</item>
-    <item name="colorMobileTerminatingChatText">@color/google_grey_900</item>
-    <item name="colorMobileTerminatingChatBackground">@color/google_grey_100</item>
-    <item name="colorMobileOriginatingChatText">@color/google_blue_900</item>
-    <item name="colorMobileOriginatingChatBackground">@color/google_blue_100</item>
-    <item name="colorPrimary20pct">@color/dialer_theme_color_20pct</item>
+    <item name="colorIcon">@android:color/white</item>
+    <item name="colorIconSecondary">#CCCCCC</item>
+    <item name="colorTextOnUnthemedDarkBackground">@android:color/white</item>
+    <item name="colorIconOnUnthemedDarkBackground">@android:color/white</item>
+    <item name="colorMobileTerminatingChatText">@android:color/white</item>
+    <item name="colorMobileTerminatingChatBackground">@android:color/black</item>
+    <item name="colorMobileOriginatingChatText">@android:color/black</item>
+    <item name="colorMobileOriginatingChatBackground">@android:color/white</item>
+    <item name="colorPrimary20pct">#33FFFFFF</item>
   </style>
 
   <!-- TODO(a bug): investigate making this style's parent Dialer.ThemeBase.NoActionBar -->

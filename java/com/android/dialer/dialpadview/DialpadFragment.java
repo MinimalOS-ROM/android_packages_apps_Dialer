@@ -949,12 +949,38 @@ public class DialpadFragment extends Fragment
   @Override
   public boolean onKey(View view, int keyCode, KeyEvent event) {
     if (view.getId() == R.id.digits) {
-      if (keyCode == KeyEvent.KEYCODE_ENTER) {
+      if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_CALL) {
         handleDialButtonPressed();
         return true;
       }
     }
     return false;
+  }
+
+  /** Handles hardware keypad and call/delete keys regardless of which view has focus. */
+  public boolean handleHardwareKeyDown(int keyCode, KeyEvent event) {
+    switch (keyCode) {
+      case KeyEvent.KEYCODE_0:
+      case KeyEvent.KEYCODE_1:
+      case KeyEvent.KEYCODE_2:
+      case KeyEvent.KEYCODE_3:
+      case KeyEvent.KEYCODE_4:
+      case KeyEvent.KEYCODE_5:
+      case KeyEvent.KEYCODE_6:
+      case KeyEvent.KEYCODE_7:
+      case KeyEvent.KEYCODE_8:
+      case KeyEvent.KEYCODE_9:
+      case KeyEvent.KEYCODE_STAR:
+      case KeyEvent.KEYCODE_POUND:
+      case KeyEvent.KEYCODE_DEL:
+        keyPressed(keyCode);
+        return true;
+      case KeyEvent.KEYCODE_CALL:
+        handleDialButtonPressed();
+        return true;
+      default:
+        return false;
+    }
   }
 
   /**

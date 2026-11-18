@@ -23,9 +23,11 @@
   </style>
 
   <style name="DialpadKeyNumberStyle">
-    <item name="android:textColor">?attr/dialpad_text_color_primary</item>
+    <item name="android:textColor">@color/monochrome_text_selector</item>
     <item name="android:textSize">?attr/dialpad_key_numbers_size</item>
-    <item name="android:fontFamily">@*android:string/config_bodyFontFamily</item>
+    <item name="android:fontFamily">monospace</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:duplicateParentState">true</item>
     <item name="android:layout_width">wrap_content</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginBottom">?attr/dialpad_key_number_margin_bottom</item>
@@ -33,9 +35,10 @@
   </style>
 
   <style name="DialpadKeyStarStyle">
-    <item name="android:textColor">?attr/dialpad_text_color_secondary</item>
+    <item name="android:textColor">@color/monochrome_text_selector</item>
     <item name="android:textSize">@dimen/dialpad_key_star_size</item>
-    <item name="android:fontFamily">@*android:string/config_bodyFontFamily</item>
+    <item name="android:fontFamily">monospace</item>
+    <item name="android:duplicateParentState">true</item>
     <item name="android:alpha">0.8</item>
     <item name="android:layout_width">wrap_content</item>
     <item name="android:layout_height">wrap_content</item>
@@ -44,9 +47,10 @@
   </style>
 
   <style name="DialpadKeyPoundStyle">
-    <item name="android:textColor">?attr/dialpad_text_color_secondary</item>
+    <item name="android:textColor">@color/monochrome_text_selector</item>
     <item name="android:textSize">@dimen/dialpad_key_pound_size</item>
-    <item name="android:fontFamily">@*android:string/config_bodyFontFamily</item>
+    <item name="android:fontFamily">monospace</item>
+    <item name="android:duplicateParentState">true</item>
     <item name="android:alpha">0.8</item>
     <item name="android:layout_width">wrap_content</item>
     <item name="android:layout_height">wrap_content</item>
@@ -55,9 +59,10 @@
   </style>
 
   <style name="DialpadKeyLettersStyle">
-    <item name="android:textColor">?attr/dialpad_text_color_secondary</item>
+    <item name="android:textColor">@color/monochrome_text_selector</item>
     <item name="android:textSize">?attr/dialpad_key_letters_size_for_single_alphabet</item>
-    <item name="android:fontFamily">@*android:string/config_bodyFontFamily</item>
+    <item name="android:fontFamily">monospace</item>
+    <item name="android:duplicateParentState">true</item>
     <item name="android:layout_width">wrap_content</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_gravity">center</item>
@@ -70,8 +75,9 @@
     <item name="android:layout_height">match_parent</item>
     <item name="android:layout_weight">15</item>
     <item name="android:minHeight">@dimen/dialpad_key_height</item>
-    <item name="android:background">@drawable/btn_dialpad_key</item>
+    <item name="android:background">@drawable/monochrome_focus_selector</item>
     <item name="android:focusable">true</item>
+    <item name="android:focusableInTouchMode">false</item>
   </style>
 
   <style name="DialpadKeyInternalLayoutStyle">
