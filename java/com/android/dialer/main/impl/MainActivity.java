@@ -92,6 +92,8 @@ public class MainActivity extends TransactionSafeActivity
   private BaseAdapter callLogAdapter;
   private final StringBuilder digits = new StringBuilder();
   private boolean inDialpad = false;
+  private int dialpadFocusIndex = 0;
+  private int callLogFocusIndex = 0;
   private ToneGenerator toneGenerator;
 
   public static Intent getShowCallLogIntent(Context context) {
@@ -191,9 +193,18 @@ public class MainActivity extends TransactionSafeActivity
                       .inflate(R.layout.minimal_call_log_item, parent, false);
             }
             CallLogEntry entry = getItem(position);
-            ((TextView) v.findViewById(R.id.minimal_log_name)).setText(entry.name);
-            ((TextView) v.findViewById(R.id.minimal_log_type)).setText(entry.type);
-            ((TextView) v.findViewById(R.id.minimal_log_time)).setText(entry.time);
+            boolean focused = (position == callLogFocusIndex);
+            int textColor = focused ? 0xFF000000 : 0xFFFFFFFF;
+            v.setBackgroundColor(focused ? 0xFFFFFFFF : 0xFF000000);
+            TextView nameView = v.findViewById(R.id.minimal_log_name);
+            TextView typeView = v.findViewById(R.id.minimal_log_type);
+            TextView timeView = v.findViewById(R.id.minimal_log_time);
+            nameView.setText(entry.name);
+            nameView.setTextColor(textColor);
+            typeView.setText(entry.type);
+            typeView.setTextColor(textColor);
+            timeView.setText(entry.time);
+            timeView.setTextColor(textColor);
             return v;
           }
         };
@@ -212,6 +223,7 @@ public class MainActivity extends TransactionSafeActivity
       cell.setOrientation(LinearLayout.VERTICAL);
       cell.setGravity(Gravity.CENTER);
       cell.setFocusable(true);
+      cell.setFocusableInTouchMode(true);
       cell.setClickable(true);
       cell.setBackgroundResource(R.drawable.monochrome_focus_selector);
 
@@ -286,12 +298,35 @@ public class MainActivity extends TransactionSafeActivity
     softkeyRight.setText(show ? "BACK" : "EXIT");
     updateDigitsDisplay();
     if (show) {
-      GridLayout grid = findViewById(R.id.minimal_dialpad_grid);
-      if (grid != null && grid.getChildCount() > 0) {
-        grid.getChildAt(0).requestFocus();
-      }
+      dialpadFocusIndex = 0;
+      updateDialpadFocus();
     } else {
       callLogList.requestFocus();
+    }
+  }
+
+  private void updateDialpadFocus() {
+    GridLayout grid = findViewById(R.id.minimal_dialpad_grid);
+    if (grid == null) {
+      return;
+    }
+    for (int i = 0; i < grid.getChildCount(); i++) {
+      View cell = grid.getChildAt(i);
+      boolean focused = (i == dialpadFocusIndex);
+      cell.setSelected(focused);
+      if (focused) {
+        cell.requestFocus();
+      }
+      if (cell instanceof ViewGroup) {
+        ViewGroup vg = (ViewGroup) cell;
+        for (int j = 0; j < vg.getChildCount(); j++) {
+          View child = vg.getChildAt(j);
+          if (child instanceof TextView) {
+            ((TextView) child).setTextColor(focused ? 0xFF000000 : 0xFFFFFFFF);
+          }
+        }
+      }
+      cell.setBackgroundColor(focused ? 0xFFFFFFFF : 0xFF000000);
     }
   }
 
@@ -408,6 +443,58 @@ public class MainActivity extends TransactionSafeActivity
     if (requestCode == PERMISSION_REQUEST_CODE) {
       loadCallLogs();
     }
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if (inDialpad && event.getAction() == KeyEvent.ACTION_DOWN) {
+      int keyCode = event.getKeyCode();
+      if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+        dialpadFocusIndex = (dialpadFocusIndex + 1) % 12;
+        updateDialpadFocus();
+        return true;
+      }
+      if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+        dialpadFocusIndex = (dialpadFocusIndex + 11) % 12;
+        updateDialpadFocus();
+        return true;
+      }
+      if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+        dialpadFocusIndex = (dialpadFocusIndex + 3) % 12;
+        updateDialpadFocus();
+        return true;
+      }
+      if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+        dialpadFocusIndex = (dialpadFocusIndex + 9) % 12;
+        updateDialpadFocus();
+        return true;
+      }
+      if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+        appendDigit(DIALPAD_KEYS[dialpadFocusIndex][0]);
+        return true;
+      }
+    } else if (!inDialpad && event.getAction() == KeyEvent.ACTION_DOWN) {
+      int keyCode = event.getKeyCode();
+      if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && !callLogs.isEmpty()) {
+        callLogFocusIndex = (callLogFocusIndex + 1) % callLogs.size();
+        callLogList.smoothScrollToPosition(callLogFocusIndex);
+        callLogAdapter.notifyDataSetChanged();
+        return true;
+      }
+      if (keyCode == KeyEvent.KEYCODE_DPAD_UP && !callLogs.isEmpty()) {
+        callLogFocusIndex = (callLogFocusIndex - 1 + callLogs.size()) % callLogs.size();
+        callLogList.smoothScrollToPosition(callLogFocusIndex);
+        callLogAdapter.notifyDataSetChanged();
+        return true;
+      }
+      if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER)
+          && callLogFocusIndex >= 0
+          && callLogFocusIndex < callLogs.size()) {
+        placeCall(callLogs.get(callLogFocusIndex).number);
+        return true;
+      }
+    }
+    return super.dispatchKeyEvent(event);
   }
 
   @Override
