@@ -974,6 +974,9 @@ public class DialpadFragment extends Fragment
       case KeyEvent.KEYCODE_POUND:
       case KeyEvent.KEYCODE_DEL:
         keyPressed(keyCode);
+        if (digits != null) {
+          digits.postDelayed(this::stopTone, 120);
+        }
         return true;
       case KeyEvent.KEYCODE_CALL:
         handleDialButtonPressed();
