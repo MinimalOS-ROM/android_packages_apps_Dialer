@@ -22,6 +22,13 @@
   <FrameLayout
     android:id="@+id/main"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone"/>
+
+  <include
+    android:id="@+id/minimal_incall_root"
+    layout="@layout/minimal_incall"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"/>
 
   <View

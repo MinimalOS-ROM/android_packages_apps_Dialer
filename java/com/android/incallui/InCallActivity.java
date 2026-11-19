@@ -28,6 +28,16 @@ import android.content.res.Configuration;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.telecom.CallAudioState;
+import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.widget.TextView;
+import com.android.incallui.call.CallList;
+import com.android.incallui.call.DialerCall;
+import com.android.incallui.call.TelecomAdapter;
+import com.android.incallui.call.state.DialerCallState;
 import android.os.Trace;
 import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
@@ -203,6 +213,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     setWindowFlags();
     setContentView(R.layout.incall_screen);
+    setupMinimalInCallUi();
     internalResolveIntent(getIntent());
 
     boolean isLandscape =
@@ -1781,5 +1792,174 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         call.disconnect();
       }
     }
+  }
+
+  private int minimalFocusIndex = -1;
+  private boolean minimalMuted = false;
+  private boolean minimalSpeaker = false;
+  private TextView[] minimalBtns;
+  private TextView minimalStateView;
+  private TextView minimalNameView;
+  private TextView minimalNumberView;
+  private TextView minimalTimerView;
+  private final Handler minimalHandler = new Handler(Looper.getMainLooper());
+  private final Runnable minimalTick = new Runnable() {
+    @Override
+    public void run() {
+      updateMinimalInCallUi();
+      minimalHandler.postDelayed(this, 1000);
+    }
+  };
+
+  private void setupMinimalInCallUi() {
+    minimalStateView = findViewById(R.id.minimal_incall_state);
+    minimalNameView = findViewById(R.id.minimal_incall_name);
+    minimalNumberView = findViewById(R.id.minimal_incall_number);
+    minimalTimerView = findViewById(R.id.minimal_incall_timer);
+    minimalBtns = new TextView[] {
+      findViewById(R.id.minimal_btn_mute),
+      findViewById(R.id.minimal_btn_speaker),
+      findViewById(R.id.minimal_btn_keypad),
+      findViewById(R.id.minimal_btn_end)
+    };
+    for (int i = 0; i < minimalBtns.length; i++) {
+      final int idx = i;
+      if (minimalBtns[i] != null) {
+        minimalBtns[i].setOnClickListener(v -> {
+          minimalFocusIndex = idx;
+          updateMinimalFocus();
+          handleMinimalAction(idx);
+        });
+      }
+    }
+    View softCenter = findViewById(R.id.minimal_incall_soft_center);
+    if (softCenter != null) {
+      softCenter.setOnClickListener(v -> handleMinimalAction(minimalFocusIndex));
+    }
+    View softRight = findViewById(R.id.minimal_incall_soft_right);
+    if (softRight != null) {
+      softRight.setOnClickListener(v -> handleMinimalAction(3));
+    }
+    updateMinimalFocus();
+    minimalHandler.removeCallbacks(minimalTick);
+    minimalHandler.post(minimalTick);
+  }
+
+  private void updateMinimalFocus() {
+    if (minimalBtns == null) return;
+    for (int i = 0; i < minimalBtns.length; i++) {
+      TextView b = minimalBtns[i];
+      if (b == null) continue;
+      boolean focused = (i == minimalFocusIndex);
+      b.setBackgroundColor(focused ? 0xFFFFFFFF : 0xFF000000);
+      b.setTextColor(focused ? 0xFF000000 : 0xFFFFFFFF);
+    }
+  }
+
+  private void updateMinimalInCallUi() {
+    DialerCall call = CallList.getInstance().getIncomingCall();
+    if (call == null) call = CallList.getInstance().getOutgoingCall();
+    if (call == null) call = CallList.getInstance().getActiveOrBackgroundCall();
+    if (call == null) return;
+
+    if (minimalNameView != null) {
+      String name = call.getNumber();
+      minimalNameView.setText(!TextUtils.isEmpty(name) ? name : "Unknown");
+    }
+    if (minimalNumberView != null) {
+      minimalNumberView.setText(!TextUtils.isEmpty(call.getNumber()) ? call.getNumber() : "");
+    }
+    if (minimalStateView != null) {
+      int st = call.getState();
+      if (st == DialerCallState.INCOMING || st == DialerCallState.CALL_WAITING) {
+        minimalStateView.setText("INCOMING (PRESS CALL TO ANSWER)");
+      } else if (st == DialerCallState.DIALING || st == DialerCallState.REDIALING) {
+        minimalStateView.setText("DIALING");
+      } else if (st == DialerCallState.ACTIVE) {
+        minimalStateView.setText("CONNECTED");
+      } else {
+        minimalStateView.setText("CALL");
+      }
+    }
+    if (minimalTimerView != null) {
+      long connectTime = call.getConnectTimeMillis();
+      if (connectTime > 0 && call.getState() == DialerCallState.ACTIVE) {
+        long secs = Math.max(0, (System.currentTimeMillis() - connectTime) / 1000);
+        minimalTimerView.setText(String.format("%02d:%02d", secs / 60, secs % 60));
+      } else {
+        minimalTimerView.setText("00:00");
+      }
+    }
+  }
+
+  private void handleMinimalAction(int idx) {
+    if (idx == 0) {
+      minimalMuted = !minimalMuted;
+      TelecomAdapter.getInstance().mute(minimalMuted);
+      if (minimalBtns[0] != null) minimalBtns[0].setText(minimalMuted ? "MUTE: ON" : "MUTE: OFF");
+    } else if (idx == 1) {
+      minimalSpeaker = !minimalSpeaker;
+      TelecomAdapter.getInstance().setAudioRoute(
+          minimalSpeaker ? CallAudioState.ROUTE_SPEAKER : CallAudioState.ROUTE_EARPIECE);
+      if (minimalBtns[1] != null) minimalBtns[1].setText(minimalSpeaker ? "SPKR: ON" : "SPKR: OFF");
+    } else if (idx == 2) {
+      View mainContainer = findViewById(R.id.main);
+      boolean show = !isDialpadVisible();
+      if (mainContainer != null) {
+        mainContainer.setVisibility(show ? View.VISIBLE : View.GONE);
+      }
+      showDialpadFragment(show, true);
+    } else if (idx == 3) {
+      DialerCall call = CallList.getInstance().getIncomingCall();
+      if (call != null) {
+        call.reject(false, null);
+        return;
+      }
+      call = CallList.getInstance().getOutgoingCall();
+      if (call == null) call = CallList.getInstance().getActiveOrBackgroundCall();
+      if (call != null) {
+        call.disconnect();
+      }
+    }
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if (event.getAction() == KeyEvent.ACTION_DOWN) {
+      int code = event.getKeyCode();
+      if (code == KeyEvent.KEYCODE_DPAD_RIGHT || code == KeyEvent.KEYCODE_DPAD_LEFT) {
+        if (minimalFocusIndex < 0) minimalFocusIndex = 0;
+        else minimalFocusIndex ^= 1;
+        updateMinimalFocus();
+        return true;
+      }
+      if (code == KeyEvent.KEYCODE_DPAD_DOWN || code == KeyEvent.KEYCODE_DPAD_UP) {
+        if (minimalFocusIndex < 0) minimalFocusIndex = 0;
+        else minimalFocusIndex ^= 2;
+        updateMinimalFocus();
+        return true;
+      }
+      if (code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER) {
+        DialerCall incoming = CallList.getInstance().getIncomingCall();
+        if (incoming != null) {
+          incoming.answer(0);
+        } else if (minimalFocusIndex >= 0) {
+          handleMinimalAction(minimalFocusIndex);
+        }
+        return true;
+      }
+      if (code == KeyEvent.KEYCODE_CALL) {
+        DialerCall incoming = CallList.getInstance().getIncomingCall();
+        if (incoming != null) {
+          incoming.answer(0);
+          return true;
+        }
+      }
+      if (code == KeyEvent.KEYCODE_ENDCALL) {
+        handleMinimalAction(3);
+        return true;
+      }
+    }
+    return super.dispatchKeyEvent(event);
   }
 }

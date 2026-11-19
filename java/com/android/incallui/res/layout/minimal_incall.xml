@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/black">
+
+  <!-- Header -->
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:paddingStart="12dp"
+      android:paddingEnd="12dp"
+      android:paddingTop="8dp"
+      android:paddingBottom="8dp">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="ACTIVE CALL"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="@android:color/white"/>
+  </LinearLayout>
+
+  <View
+      android:layout_width="match_parent"
+      android:layout_height="1dp"
+      android:background="@android:color/white"/>
+
+  <!-- Caller Info -->
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:orientation="vertical"
+      android:gravity="center"
+      android:padding="20dp">
+
+    <TextView
+        android:id="@+id/minimal_incall_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CONNECTED"
+        android:fontFamily="monospace"
+        android:textSize="12sp"
+        android:textColor="@android:color/white"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"/>
+
+    <TextView
+        android:id="@+id/minimal_incall_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Unknown"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:textColor="@android:color/white"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/minimal_incall_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text=""
+        android:fontFamily="monospace"
+        android:textSize="14sp"
+        android:textColor="#CCCCCC"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/minimal_incall_timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="00:00"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"/>
+  </LinearLayout>
+
+  <!-- 2x2 Action Grid -->
+  <View
+      android:layout_width="match_parent"
+      android:layout_height="1dp"
+      android:background="@android:color/white"/>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:id="@+id/minimal_btn_mute"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:layout_weight="1"
+          android:gravity="center"
+          android:text="MUTE: OFF"
+          android:fontFamily="monospace"
+          android:textStyle="bold"
+          android:textSize="13sp"
+          android:textColor="@android:color/white"/>
+
+      <View
+          android:layout_width="1dp"
+          android:layout_height="match_parent"
+          android:background="#333333"/>
+
+      <TextView
+          android:id="@+id/minimal_btn_speaker"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:layout_weight="1"
+          android:gravity="center"
+          android:text="SPKR: OFF"
+          android:fontFamily="monospace"
+          android:textStyle="bold"
+          android:textSize="13sp"
+          android:textColor="@android:color/white"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#333333"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:id="@+id/minimal_btn_keypad"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:layout_weight="1"
+          android:gravity="center"
+          android:text="KEYPAD"
+          android:fontFamily="monospace"
+          android:textStyle="bold"
+          android:textSize="13sp"
+          android:textColor="@android:color/white"/>
+
+      <View
+          android:layout_width="1dp"
+          android:layout_height="match_parent"
+          android:background="#333333"/>
+
+      <TextView
+          android:id="@+id/minimal_btn_end"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:layout_weight="1"
+          android:gravity="center"
+          android:text="END CALL"
+          android:fontFamily="monospace"
+          android:textStyle="bold"
+          android:textSize="13sp"
+          android:textColor="@android:color/white"/>
+    </LinearLayout>
+  </LinearLayout>
+
+  <!-- Softkey Bar -->
+  <View
+      android:layout_width="match_parent"
+      android:layout_height="2dp"
+      android:background="@android:color/white"/>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:paddingStart="12dp"
+      android:paddingEnd="12dp"
+      android:paddingTop="10dp"
+      android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/minimal_incall_soft_left"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="start"
+        android:text=""
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/minimal_incall_soft_center"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="SELECT"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/minimal_incall_soft_right"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="end"
+        android:text="END"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="@android:color/white"/>
+  </LinearLayout>
+</LinearLayout>
