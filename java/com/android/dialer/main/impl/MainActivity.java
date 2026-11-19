@@ -27,6 +27,7 @@ import android.media.ToneGenerator;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CallLog;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.telecom.TelecomManager;
 import android.text.TextUtils;
@@ -37,8 +38,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.GridLayout;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.android.dialer.R;
@@ -81,6 +80,7 @@ public class MainActivity extends TransactionSafeActivity
   }
 
   private ListView callLogList;
+  private ListView suggestionsList;
   private View dialpadContainer;
   private TextView digitsDisplay;
   private TextView headerMode;
@@ -89,10 +89,15 @@ public class MainActivity extends TransactionSafeActivity
   private TextView softkeyRight;
 
   private final List<CallLogEntry> callLogs = new ArrayList<>();
+  private final List<CallLogEntry> favorites = new ArrayList<>();
+  private final List<CallLogEntry> contacts = new ArrayList<>();
+  private final List<CallLogEntry> suggestions = new ArrayList<>();
   private BaseAdapter callLogAdapter;
+  private BaseAdapter suggestionsAdapter;
   private final StringBuilder digits = new StringBuilder();
+  private int currentPage = 0; // 0: CALL LOG, 1: FAVORITES, 2: CONTACTS, 3: DIALPAD
   private boolean inDialpad = false;
-  private int dialpadFocusIndex = 0;
+  private int suggestionFocusIndex = 0;
   private int callLogFocusIndex = 0;
   private ToneGenerator toneGenerator;
 
@@ -113,6 +118,7 @@ public class MainActivity extends TransactionSafeActivity
     setContentView(R.layout.minimal_main);
 
     callLogList = findViewById(R.id.minimal_call_log_list);
+    suggestionsList = findViewById(R.id.minimal_suggestions_list);
     dialpadContainer = findViewById(R.id.minimal_dialpad_container);
     digitsDisplay = findViewById(R.id.minimal_digits_display);
     headerMode = findViewById(R.id.minimal_header_mode);
@@ -127,7 +133,7 @@ public class MainActivity extends TransactionSafeActivity
     }
 
     setupCallLogList();
-    setupDialpadGrid();
+    setupSuggestionsList();
     setupSoftkeys();
     handleIntent(getIntent());
     loadCallLogs();
@@ -166,17 +172,23 @@ public class MainActivity extends TransactionSafeActivity
     }
   }
 
+  private List<CallLogEntry> getActiveList() {
+    if (currentPage == 1) return favorites;
+    if (currentPage == 2) return contacts;
+    return callLogs;
+  }
+
   private void setupCallLogList() {
     callLogAdapter =
         new BaseAdapter() {
           @Override
           public int getCount() {
-            return callLogs.size();
+            return getActiveList().size();
           }
 
           @Override
           public CallLogEntry getItem(int position) {
-            return callLogs.get(position);
+            return getActiveList().get(position);
           }
 
           @Override
@@ -210,51 +222,54 @@ public class MainActivity extends TransactionSafeActivity
         };
     callLogList.setAdapter(callLogAdapter);
     callLogList.setOnItemClickListener(
-        (parent, view, position, id) -> placeCall(callLogs.get(position).number));
+        (parent, view, position, id) -> placeCall(getActiveList().get(position).number));
   }
 
-  private void setupDialpadGrid() {
-    GridLayout grid = findViewById(R.id.minimal_dialpad_grid);
-    for (int i = 0; i < DIALPAD_KEYS.length; i++) {
-      final String num = DIALPAD_KEYS[i][0];
-      final String sub = DIALPAD_KEYS[i][1];
+  private void setupSuggestionsList() {
+    suggestionsAdapter =
+        new BaseAdapter() {
+          @Override
+          public int getCount() {
+            return suggestions.size();
+          }
 
-      LinearLayout cell = new LinearLayout(this);
-      cell.setOrientation(LinearLayout.VERTICAL);
-      cell.setGravity(Gravity.CENTER);
-      cell.setFocusable(true);
-      cell.setFocusableInTouchMode(true);
-      cell.setClickable(true);
-      cell.setBackgroundResource(R.drawable.monochrome_focus_selector);
+          @Override
+          public CallLogEntry getItem(int position) {
+            return suggestions.get(position);
+          }
 
-      GridLayout.LayoutParams params =
-          new GridLayout.LayoutParams(
-              GridLayout.spec(i / 3, 1f), GridLayout.spec(i % 3, 1f));
-      params.width = 0;
-      params.height = 0;
-      cell.setLayoutParams(params);
+          @Override
+          public long getItemId(int position) {
+            return position;
+          }
 
-      TextView numView = new TextView(this);
-      numView.setText(num);
-      numView.setTextSize(24);
-      numView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-      numView.setTextColor(getResources().getColorStateList(R.color.monochrome_text_selector, null));
-      numView.setDuplicateParentStateEnabled(true);
-      numView.setGravity(Gravity.CENTER);
-
-      TextView subView = new TextView(this);
-      subView.setText(sub);
-      subView.setTextSize(10);
-      subView.setTypeface(Typeface.MONOSPACE);
-      subView.setTextColor(getResources().getColorStateList(R.color.monochrome_text_selector, null));
-      subView.setDuplicateParentStateEnabled(true);
-      subView.setGravity(Gravity.CENTER);
-
-      cell.addView(numView);
-      cell.addView(subView);
-      cell.setOnClickListener(v -> appendDigit(num));
-      grid.addView(cell);
-    }
+          @Override
+          public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+              v =
+                  LayoutInflater.from(MainActivity.this)
+                      .inflate(R.layout.minimal_call_log_item, parent, false);
+            }
+            CallLogEntry entry = getItem(position);
+            boolean focused = (position == suggestionFocusIndex);
+            int textColor = focused ? 0xFF000000 : 0xFFFFFFFF;
+            v.setBackgroundColor(focused ? 0xFFFFFFFF : 0xFF000000);
+            TextView nameView = v.findViewById(R.id.minimal_log_name);
+            TextView typeView = v.findViewById(R.id.minimal_log_type);
+            TextView timeView = v.findViewById(R.id.minimal_log_time);
+            nameView.setText(entry.name);
+            nameView.setTextColor(textColor);
+            typeView.setText(entry.number);
+            typeView.setTextColor(textColor);
+            timeView.setText("");
+            timeView.setTextColor(textColor);
+            return v;
+          }
+        };
+    suggestionsList.setAdapter(suggestionsAdapter);
+    suggestionsList.setOnItemClickListener(
+        (parent, view, position, id) -> placeCall(suggestions.get(position).number));
   }
 
   private void setupSoftkeys() {
@@ -290,43 +305,47 @@ public class MainActivity extends TransactionSafeActivity
   }
 
   private void showDialpad(boolean show) {
-    inDialpad = show;
-    dialpadContainer.setVisibility(show ? View.VISIBLE : View.GONE);
-    callLogList.setVisibility(show ? View.GONE : View.VISIBLE);
-    headerMode.setText(show ? "DIALPAD" : "CALL LOG");
-    softkeyCenter.setText(show ? "CLEAR" : "DIALPAD");
-    softkeyRight.setText(show ? "BACK" : "EXIT");
+    switchPage(show ? 3 : 0);
+  }
+
+  private void switchPage(int page) {
+    currentPage = (page + 4) % 4;
+    inDialpad = (currentPage == 3);
+    dialpadContainer.setVisibility(inDialpad ? View.VISIBLE : View.GONE);
+    callLogList.setVisibility(inDialpad ? View.GONE : View.VISIBLE);
+    String[] titles = {"CALL LOG", "FAVORITES", "CONTACTS", "DIALPAD"};
+    headerMode.setText(titles[currentPage]);
+    softkeyCenter.setText(inDialpad ? "CLEAR" : "DIALPAD");
+    softkeyRight.setText(inDialpad ? "BACK" : "EXIT");
     updateDigitsDisplay();
-    if (show) {
-      dialpadFocusIndex = 0;
-      updateDialpadFocus();
+    if (inDialpad) {
+      suggestionFocusIndex = 0;
+      updateSuggestions();
     } else {
+      callLogFocusIndex = 0;
+      callLogAdapter.notifyDataSetChanged();
+      callLogList.setSelection(0);
       callLogList.requestFocus();
     }
   }
 
-  private void updateDialpadFocus() {
-    GridLayout grid = findViewById(R.id.minimal_dialpad_grid);
-    if (grid == null) {
-      return;
-    }
-    for (int i = 0; i < grid.getChildCount(); i++) {
-      View cell = grid.getChildAt(i);
-      boolean focused = (i == dialpadFocusIndex);
-      cell.setSelected(focused);
-      if (focused) {
-        cell.requestFocus();
-      }
-      if (cell instanceof ViewGroup) {
-        ViewGroup vg = (ViewGroup) cell;
-        for (int j = 0; j < vg.getChildCount(); j++) {
-          View child = vg.getChildAt(j);
-          if (child instanceof TextView) {
-            ((TextView) child).setTextColor(focused ? 0xFF000000 : 0xFFFFFFFF);
-          }
+  private void updateSuggestions() {
+    suggestions.clear();
+    String query = digits.toString().replaceAll("[^0-9*#]", "");
+    if (!query.isEmpty()) {
+      for (CallLogEntry c : contacts) {
+        String cleanNum = c.number != null ? c.number.replaceAll("[^0-9*#+]", "") : "";
+        if (cleanNum.contains(query)) {
+          suggestions.add(c);
         }
       }
-      cell.setBackgroundColor(focused ? 0xFFFFFFFF : 0xFF000000);
+    }
+    suggestionFocusIndex = 0;
+    if (suggestionsAdapter != null) {
+      suggestionsAdapter.notifyDataSetChanged();
+      if (!suggestions.isEmpty()) {
+        suggestionsList.setSelection(0);
+      }
     }
   }
 
@@ -345,6 +364,7 @@ public class MainActivity extends TransactionSafeActivity
 
   private void updateDigitsDisplay() {
     digitsDisplay.setText(digits.length() > 0 ? digits.toString() : "_");
+    updateSuggestions();
   }
 
   private void playShortTone(String d) {
@@ -390,10 +410,16 @@ public class MainActivity extends TransactionSafeActivity
 
   private void loadCallLogs() {
     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
-        != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        || ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED) {
       ActivityCompat.requestPermissions(
           this,
-          new String[] {Manifest.permission.READ_CALL_LOG, Manifest.permission.CALL_PHONE},
+          new String[] {
+            Manifest.permission.READ_CALL_LOG,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.CALL_PHONE
+          },
           PERMISSION_REQUEST_CODE);
       return;
     }
@@ -433,7 +459,35 @@ public class MainActivity extends TransactionSafeActivity
         }
       }
     }
+    loadContacts(favorites, true);
+    loadContacts(contacts, false);
     callLogAdapter.notifyDataSetChanged();
+  }
+
+  private void loadContacts(List<CallLogEntry> target, boolean starredOnly) {
+    target.clear();
+    String[] projection = {
+      ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+      ContactsContract.CommonDataKinds.Phone.NUMBER
+    };
+    String selection = starredOnly ? ContactsContract.CommonDataKinds.Phone.STARRED + "=1" : null;
+    try (Cursor cursor =
+        getContentResolver()
+            .query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                projection,
+                selection,
+                null,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC")) {
+      if (cursor != null) {
+        while (cursor.moveToNext()) {
+          String name = cursor.getString(0);
+          String number = cursor.getString(1);
+          String displayName = !TextUtils.isEmpty(name) ? name : (!TextUtils.isEmpty(number) ? number : "Unknown");
+          target.add(new CallLogEntry(displayName, number, starredOnly ? "FAVORITE" : "CONTACT", ""));
+        }
+      }
+    }
   }
 
   @Override
@@ -450,47 +504,60 @@ public class MainActivity extends TransactionSafeActivity
     if (inDialpad && event.getAction() == KeyEvent.ACTION_DOWN) {
       int keyCode = event.getKeyCode();
       if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-        dialpadFocusIndex = (dialpadFocusIndex + 1) % 12;
-        updateDialpadFocus();
+        switchPage(currentPage + 1);
         return true;
       }
       if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-        dialpadFocusIndex = (dialpadFocusIndex + 11) % 12;
-        updateDialpadFocus();
+        switchPage(currentPage - 1);
         return true;
       }
-      if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-        dialpadFocusIndex = (dialpadFocusIndex + 3) % 12;
-        updateDialpadFocus();
+      if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && !suggestions.isEmpty()) {
+        suggestionFocusIndex = (suggestionFocusIndex + 1) % suggestions.size();
+        suggestionsList.setSelection(suggestionFocusIndex);
+        suggestionsAdapter.notifyDataSetChanged();
         return true;
       }
-      if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-        dialpadFocusIndex = (dialpadFocusIndex + 9) % 12;
-        updateDialpadFocus();
+      if (keyCode == KeyEvent.KEYCODE_DPAD_UP && !suggestions.isEmpty()) {
+        suggestionFocusIndex = (suggestionFocusIndex - 1 + suggestions.size()) % suggestions.size();
+        suggestionsList.setSelection(suggestionFocusIndex);
+        suggestionsAdapter.notifyDataSetChanged();
         return true;
       }
       if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
-        appendDigit(DIALPAD_KEYS[dialpadFocusIndex][0]);
+        if (!suggestions.isEmpty() && suggestionFocusIndex < suggestions.size()) {
+          placeCall(suggestions.get(suggestionFocusIndex).number);
+        } else {
+          placeCall(digits.toString());
+        }
         return true;
       }
     } else if (!inDialpad && event.getAction() == KeyEvent.ACTION_DOWN) {
       int keyCode = event.getKeyCode();
-      if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && !callLogs.isEmpty()) {
-        callLogFocusIndex = (callLogFocusIndex + 1) % callLogs.size();
-        callLogList.smoothScrollToPosition(callLogFocusIndex);
+      List<CallLogEntry> active = getActiveList();
+      if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+        switchPage(currentPage + 1);
+        return true;
+      }
+      if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+        switchPage(currentPage - 1);
+        return true;
+      }
+      if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && !active.isEmpty()) {
+        callLogFocusIndex = (callLogFocusIndex + 1) % active.size();
+        callLogList.setSelection(callLogFocusIndex);
         callLogAdapter.notifyDataSetChanged();
         return true;
       }
-      if (keyCode == KeyEvent.KEYCODE_DPAD_UP && !callLogs.isEmpty()) {
-        callLogFocusIndex = (callLogFocusIndex - 1 + callLogs.size()) % callLogs.size();
-        callLogList.smoothScrollToPosition(callLogFocusIndex);
+      if (keyCode == KeyEvent.KEYCODE_DPAD_UP && !active.isEmpty()) {
+        callLogFocusIndex = (callLogFocusIndex - 1 + active.size()) % active.size();
+        callLogList.setSelection(callLogFocusIndex);
         callLogAdapter.notifyDataSetChanged();
         return true;
       }
       if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER)
           && callLogFocusIndex >= 0
-          && callLogFocusIndex < callLogs.size()) {
-        placeCall(callLogs.get(callLogFocusIndex).number);
+          && callLogFocusIndex < active.size()) {
+        placeCall(active.get(callLogFocusIndex).number);
         return true;
       }
     }
